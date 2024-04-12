@@ -46,17 +46,18 @@ def cbc(im):
     key = RAND_bytes(16)
     iv = RAND_bytes(16)
 
-    cipher = AES.new(key, AES.MODE_CBC)
+    cipher = AES.new(key, AES.MODE_ECB)
     padded_file = pad(im)
 
+    encrypted_data = bytes()
     prev_block = iv
 
-    encrypted_data = b''
     for i in range(0, len(padded_file), 16):
         block = padded_file[i:i+16]
         block = bytes(x ^ y for x, y in zip(block, prev_block)) # xor with previous block before encrypting
-        encrypted_data += cipher.encrypt(block)
-        prev_block = cipher.encrypt(block)
+        encrypted_block = cipher.encrypt(block)
+        encrypted_data += encrypted_block
+        prev_block = encrypted_block
 
     return encrypted_data, key, iv
 
@@ -81,6 +82,7 @@ def main():
 
     print("ECB encryption key:", key_ecb)
 
+    # cbc
     encrypted_im_cbc, key, iv = cbc(image)
     with open(output_cbc, 'wb') as output_file:
         output_file.write(header)
