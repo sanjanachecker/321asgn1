@@ -42,14 +42,27 @@ def pad(data, block_size=16):
     return data + padding
 
 
-def cbc(im, key, iv):
-    cipher = AES.new(key, AES.MODE_ECB)
+def cbc(im):
+    key = RAND_bytes(16)
+    iv = RAND_bytes(16)
+
+    cipher = AES.new(key, AES.MODE_CBC)
     padded_file = pad(im)
 
+    prev_block = iv
+
+    encrypted_data = b''
+    for i in range(0, len(padded_file), 16):
+        block = padded_file[i:i+16]
+        block = bytes(x ^ y for x, y in zip(block, prev_block)) # xor with previous block before encrypting
+        encrypted_data += cipher.encrypt(block)
+        prev_block = cipher.encrypt(block)
+
+    return encrypted_data, key, iv
 
 def main():
     # if len(sys.argv) < 4:
-    print("Usage: ./run.sh input.bmp output_ecb.bmp (output_cbc.bmp)")
+    print("Usage: ./run.sh input.bmp output_ecb.bmp output_cbc.bmp")
     # sys.exit(1)
 
     filename = sys.argv[1]
@@ -68,9 +81,7 @@ def main():
 
     print("ECB encryption key:", key_ecb)
 
-    key = RAND_bytes(16)
-    iv = RAND_bytes(16)
-    encrypted_im_cbc = cbc(image)
+    encrypted_im_cbc, key, iv = cbc(image)
     with open(output_cbc, 'wb') as output_file:
         output_file.write(header)
         output_file.write(encrypted_im_cbc)
