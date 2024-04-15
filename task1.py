@@ -41,9 +41,10 @@ def pad(data, block_size=16):
     padding = bytes([padding_len] * padding_len)
     return data + padding
 
+
 def unpad(data, block_size=16):
-    padding_len = block_size - len(data) % block_size
-    return data[:(block_size - padding_len)] 
+    padding_len = data[-1]
+    return data[:-padding_len]
 
 
 def cbc_encrypt(im):
@@ -58,12 +59,14 @@ def cbc_encrypt(im):
 
     for i in range(0, len(padded_file), 16):
         block = padded_file[i:i+16]
-        block = bytes(x ^ y for x, y in zip(block, prev_block)) # xor with previous block before encrypting
+        # xor with previous block before encrypting
+        block = bytes(x ^ y for x, y in zip(block, prev_block))
         encrypted_block = cipher.encrypt(block)
         encrypted_data += encrypted_block
         prev_block = encrypted_block
 
     return encrypted_data, key, iv
+
 
 def cbc_decrypt(encrypted_string, key, iv):
 
@@ -73,15 +76,18 @@ def cbc_decrypt(encrypted_string, key, iv):
     prev_block = iv
 
     for i in range(0, len(encrypted_string), 16):
-        block = encrypted_string[i:i+16]
-        decrypted_block = cipher.decrypt(block)
-        block = bytes(x ^ y for x, y in zip(block, prev_block)) # xor with previous block before encrypting
+        encrypted_block = encrypted_string[i:i+16]
+        decrypted_block = cipher.decrypt(encrypted_block)
+        # xor with previous block after decrypting
+        decrypted_block = bytes(
+            x ^ y for x, y in zip(decrypted_block, prev_block))
         decrypted_data += decrypted_block
-        prev_block = decrypted_block
-    
+        prev_block = encrypted_block
+
     decrypted_data = unpad(decrypted_data)
 
     return decrypted_data
+
 
 def main():
     # if len(sys.argv) < 4:
@@ -113,7 +119,7 @@ def main():
 
     print("CBC encyption key:", key, "IV:", iv)
 
-    #cbc decrypt
+    # cbc decrypt
     decrypted_data = cbc_decrypt(encrypted_im_cbc, key, iv)
     with open(output_cbc_decrypt, 'wb') as output_file:
         output_file.write(header)
