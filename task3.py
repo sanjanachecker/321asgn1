@@ -19,10 +19,10 @@ for col in df.columns[1:]:
     plt.plot(df['type'], df[col], marker='o', label=col)
 
 plt.title('AES Throughput')
-plt.xlabel('AES Type')
+plt.xlabel('Data size (bytes)')
 plt.ylabel('Throughput (k)')
 plt.xticks(rotation=45)
-plt.legend(title='Data Size')
+plt.legend(title='AES Type')
 plt.grid(True)
 plt.tight_layout()
 plt.show()
