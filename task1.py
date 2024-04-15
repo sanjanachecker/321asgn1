@@ -2,16 +2,15 @@ from ssl import RAND_bytes
 import sys
 from Crypto.Cipher import AES
 
+def pad(data, block_size=16):
+    padding_len = block_size - len(data) % block_size
+    padding = bytes([padding_len] * padding_len)
+    return data + padding
 
-# # open file
-# image = sys.argv[1]
-# with open(image, 'rb') as image_file:
-#     im = image_file.read()
 
-# # get size of file
-# size = len(im)
-# print(f'File Size in Bytes is {size}')
-
+def unpad(data, block_size=16):
+    padding_len = data[-1]
+    return data[:-padding_len]
 
 def ecb_encrypt(im):
     # need to ensure that file is evenly disible by 128-bits with PKCS#7 padding
@@ -34,17 +33,6 @@ def ecb_encrypt(im):
         encrypted_data += cipher.encrypt(block)
 
     return encrypted_data, key
-
-
-def pad(data, block_size=16):
-    padding_len = block_size - len(data) % block_size
-    padding = bytes([padding_len] * padding_len)
-    return data + padding
-
-
-def unpad(data, block_size=16):
-    padding_len = data[-1]
-    return data[:-padding_len]
 
 
 def cbc_encrypt(im):
@@ -88,6 +76,28 @@ def cbc_decrypt(encrypted_string, key, iv):
 
     return decrypted_data
 
+def submit(user_string, key, iv):
+    # URL encode ; and = in the user string 
+    encoded_string = user_string.replace(";", "%3B")
+    encoded_string = encoded_string.replace("=", "%3D")
+
+    # prepend and append given strings
+    encoded_plaintext = f"userid=456;userdata={encoded_string};session-id=31337".encode() # encodes by utf8
+    print(encoded_plaintext)
+    encoded_plaintext = pad(encoded_plaintext)
+
+    # use cbc to encode
+    ciphertext, key, iv = cbc(encoded_plaintext)
+    return ciphertext
+
+
+def verify(encrypted_string, key, iv):
+    # decrypt string w cbc 
+    # parse string for pattern ;admin=true
+    # return true if ";admin=true" exists, false otherwise
+    # note: should be impossible for user to provide input to submit() that will make verify() return true
+    
+    pass
 
 def main():
     # if len(sys.argv) < 4:
@@ -99,7 +109,7 @@ def main():
     output_cbc = sys.argv[3]
     output_cbc_decrypt = sys.argv[4]
 
-    # ebc
+    # ebc encrypt
     with open(filename, 'rb') as file:
         header = file.read(54)  # or 138 if not working
         image = file.read()
@@ -124,6 +134,9 @@ def main():
     with open(output_cbc_decrypt, 'wb') as output_file:
         output_file.write(header)
         output_file.write(decrypted_data)
+    
+    # submit
+    print(submit("hello"))
 
 
 if __name__ == "__main__":
