@@ -15,9 +15,11 @@ def submit(user_string):
     encoded_string = encoded_string.replace("=", "%3D")
 
     # prepend and append given strings
-    encoded_plaintext = f"userid=456;userdata={encoded_string};session-id=31337".encode()
+    encoded_plaintext = f"userid=456;userdata={encoded_string};session-id=31337".encode() # encodes by utf8
+    print(encoded_plaintext)
     encoded_plaintext = pad(encoded_plaintext)
 
+    # use cbc to encode
     ciphertext, key, iv = cbc(encoded_plaintext)
     return ciphertext
 
