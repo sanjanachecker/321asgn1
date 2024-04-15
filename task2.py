@@ -1,15 +1,15 @@
 from task1 import cbc, ecb
 from ssl import RAND_bytes
 
+key = RAND_bytes(16)
+iv = RAND_bytes(16)
+
 def pad(data, block_size=16):
     padding_len = block_size - len(data) % block_size
     padding = bytes([padding_len] * padding_len)
     return data + padding
     
-def submit(user_string):
-    key = RAND_bytes(16)
-    iv = RAND_bytes(16)
-
+def submit(user_string, key, iv):
     # URL encode ; and = in the user string 
     encoded_string = user_string.replace(";", "%3B")
     encoded_string = encoded_string.replace("=", "%3D")
