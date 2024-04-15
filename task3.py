@@ -13,7 +13,6 @@ data = {
 
 df = pd.DataFrame(data)
 
-# Plotting
 plt.figure(figsize=(12, 6))
 for col in df.columns[1:]:
     plt.plot(df['type'], df[col], marker='o', label=col)
