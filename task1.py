@@ -76,7 +76,7 @@ def cbc_decrypt(encrypted_string, key, iv):
 
     return decrypted_data
 
-def submit(user_string, key, iv):
+def submit(user_string):
     # URL encode ; and = in the user string 
     encoded_string = user_string.replace(";", "%3B")
     encoded_string = encoded_string.replace("=", "%3D")
@@ -87,8 +87,8 @@ def submit(user_string, key, iv):
     encoded_plaintext = pad(encoded_plaintext)
 
     # use cbc to encode
-    ciphertext, key, iv = cbc(encoded_plaintext)
-    return ciphertext
+    ciphertext, key, iv = cbc_encrypt(encoded_plaintext)
+    return ciphertext, key, iv
 
 
 def verify(encrypted_string, key, iv):
@@ -96,8 +96,11 @@ def verify(encrypted_string, key, iv):
     # parse string for pattern ;admin=true
     # return true if ";admin=true" exists, false otherwise
     # note: should be impossible for user to provide input to submit() that will make verify() return true
-    
-    pass
+    decrypted_data = cbc_decrypt(encrypted_string, key, iv)
+    admin_encoded = ";admin=true;".encode()
+    return admin_encoded in decrypted_data
+
+
 
 def main():
     # if len(sys.argv) < 4:
@@ -136,7 +139,8 @@ def main():
         output_file.write(decrypted_data)
     
     # submit
-    print(submit("hello"))
+    submit_ciphertext, web_key, web_iv = submit("hello")
+    print(submit_ciphertext)
 
 
 if __name__ == "__main__":
