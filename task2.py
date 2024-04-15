@@ -24,6 +24,10 @@ def submit(user_string):
     return ciphertext
 
 def verify():
+    # decrypt string w cbc 
+    # parse string for pattern ;admin=true
+    # return true if ";admin=true" exists, false otherwise
+    # note: should be impossible for user to provide input to submit() that will make verify() return true
     pass
 
 print(submit("hello"))
