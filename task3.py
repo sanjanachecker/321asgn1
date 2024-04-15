@@ -18,9 +18,9 @@ plt.figure(figsize=(12, 6))
 for col in df.columns[1:]:
     plt.plot(df['type'], df[col], marker='o', label=col)
 
-plt.title('AES Throughput')
-plt.xlabel('Data size (bytes)')
-plt.ylabel('Throughput (k)')
+plt.title('AES Key size vs. Throughput')
+plt.xlabel('RSA key size (bytes)')
+plt.ylabel('Throughput (k operations per second)')
 plt.xticks(rotation=45)
 plt.legend(title='AES Type')
 plt.grid(True)
