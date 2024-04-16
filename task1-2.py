@@ -101,18 +101,20 @@ def verify(encrypted_string, key, iv):
     # return true if ";admin=true" exists, false otherwise
     # note: should be impossible for user to provide input to submit() that will make verify() return true
     decrypted_data = cbc_decrypt(encrypted_string, key, iv)
+    print("decrypted data:",decrypted_data)
     admin_encoded = ";admin=true;".encode()
     return admin_encoded in decrypted_data
 
 def bit_flip(ciphertext):
-    cipher_block, key, iv = cbc_encrypt("4admin5true4".encode())
-    print("4admin5true4".encode())
+    ciphertext_blocks = [ciphertext[i:i+16] for i in range(0, len(ciphertext), 16)]
+    target_block = ciphertext_blocks[0] # we want to modify first block because when chained, will xor with second block
     xor1 = ord('4') ^ ord(';') # what to xor with to get ;
     xor2 = ord('5') ^ ord('=') # what to xor with to get = 
-    mod_cipher_block = cipher_block[:4] + bytes([cipher_block[4] ^ xor1]) + cipher_block[5:10] + bytes([cipher_block[10] ^ xor2]) + cipher_block[11:]
+    mod_cipher_block = target_block[:4] + bytes([target_block[4] ^ xor1]) + target_block[5:10] + bytes([target_block[10] ^ xor2]) + target_block[11:15] + bytes([target_block[15] ^ xor1])
     print("modified cipher block:", mod_cipher_block)
-    # data = cbc_decrypt(mod_cipher_block, key, iv)
-    return mod_cipher_block
+    ciphertext_blocks[0] = bytes(mod_cipher_block)
+    modified_ciphertext = b''.join(ciphertext_blocks)
+    return modified_ciphertext
 
 def main():
     # # if len(sys.argv) < 4:
@@ -159,6 +161,7 @@ def main():
     cipher, key, iv = submit(user_attack)
     print("cipher:",cipher)
     mod_cipher = bit_flip(cipher)
+    print("decrypted data without modifying:", cbc_decrypt(cipher, key, iv))
     print("modified cipher:", mod_cipher)
     val = verify(mod_cipher, key, iv)
     print(val)
