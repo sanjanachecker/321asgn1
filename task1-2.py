@@ -9,6 +9,8 @@ def pad(data, block_size=16):
 
 
 def unpad(data, block_size=16):
+    # print("data to unpad:", data)
+    # print("last byte:",data[-1])
     padding_len = data[-1]
     return data[:-padding_len]
 
@@ -73,6 +75,7 @@ def cbc_decrypt(encrypted_string, key, iv):
         prev_block = encrypted_block
 
     decrypted_data = unpad(decrypted_data)
+    # print("decrypted data:", decrypted_data)
 
     return decrypted_data
 
@@ -83,11 +86,12 @@ def submit(user_string):
 
     # prepend and append given strings
     encoded_plaintext = f"userid=456;userdata={encoded_string};session-id=31337".encode() # encodes by utf8
-    print(encoded_plaintext)
+    # print("enccoded plaintext", encoded_plaintext)
     encoded_plaintext = pad(encoded_plaintext)
 
     # use cbc to encode
     ciphertext, key, iv = cbc_encrypt(encoded_plaintext)
+    # print("ciphertext:", ciphertext)
     return ciphertext, key, iv
 
 
@@ -100,47 +104,64 @@ def verify(encrypted_string, key, iv):
     admin_encoded = ";admin=true;".encode()
     return admin_encoded in decrypted_data
 
-
+def bit_flip(ciphertext):
+    cipher_block, key, iv = cbc_encrypt("4admin5true4".encode())
+    print("4admin5true4".encode())
+    xor1 = ord('4') ^ ord(';') # what to xor with to get ;
+    xor2 = ord('5') ^ ord('=') # what to xor with to get = 
+    mod_cipher_block = cipher_block[:4] + bytes([cipher_block[4] ^ xor1]) + cipher_block[5:10] + bytes([cipher_block[10] ^ xor2]) + cipher_block[11:]
+    print("modified cipher block:", mod_cipher_block)
+    # data = cbc_decrypt(mod_cipher_block, key, iv)
+    return mod_cipher_block
 
 def main():
-    # if len(sys.argv) < 4:
-    print("Usage: ./run.sh input.bmp output_ecb.bmp output_cbc.bmp")
-    # sys.exit(1)
+    # # if len(sys.argv) < 4:
+    # print("Usage: ./run.sh input.bmp output_ecb.bmp output_cbc.bmp")
+    # # sys.exit(1)
 
-    filename = sys.argv[1]
-    output_ebc = sys.argv[2]
-    output_cbc = sys.argv[3]
-    output_cbc_decrypt = sys.argv[4]
+    # filename = sys.argv[1]
+    # output_ebc = sys.argv[2]
+    # output_cbc = sys.argv[3]
+    # output_cbc_decrypt = sys.argv[4]
 
-    # ebc encrypt
-    with open(filename, 'rb') as file:
-        header = file.read(54)  # or 138 if not working
-        image = file.read()
+    # # ebc encrypt
+    # with open(filename, 'rb') as file:
+    #     header = file.read(54)  # or 138 if not working
+    #     image = file.read()
 
-    encrypted_im_ecb, key_ecb = ecb_encrypt(image)
-    with open(output_ebc, 'wb') as output_file:
-        output_file.write(header)
-        output_file.write(encrypted_im_ecb)
+    # encrypted_im_ecb, key_ecb = ecb_encrypt(image)
+    # with open(output_ebc, 'wb') as output_file:
+    #     output_file.write(header)
+    #     output_file.write(encrypted_im_ecb)
 
-    print("ECB encryption key:", key_ecb)
+    # print("ECB encryption key:", key_ecb)
 
-    # cbc encrypt
-    encrypted_im_cbc, key, iv = cbc_encrypt(image)
-    with open(output_cbc, 'wb') as output_file:
-        output_file.write(header)
-        output_file.write(encrypted_im_cbc)
+    # # cbc encrypt
+    # encrypted_im_cbc, key, iv = cbc_encrypt(image)
+    # with open(output_cbc, 'wb') as output_file:
+    #     output_file.write(header)
+    #     output_file.write(encrypted_im_cbc)
 
-    print("CBC encyption key:", key, "IV:", iv)
+    # print("CBC encyption key:", key, "IV:", iv)
 
-    # cbc decrypt
-    decrypted_data = cbc_decrypt(encrypted_im_cbc, key, iv)
-    with open(output_cbc_decrypt, 'wb') as output_file:
-        output_file.write(header)
-        output_file.write(decrypted_data)
+    # # cbc decrypt
+    # decrypted_data = cbc_decrypt(encrypted_im_cbc, key, iv)
+    # with open(output_cbc_decrypt, 'wb') as output_file:
+    #     output_file.write(header)
+    #     output_file.write(decrypted_data)
     
-    # submit
-    submit_ciphertext, web_key, web_iv = submit("hello")
-    print(submit_ciphertext)
+    # # submit
+    # submit_ciphertext, web_key, web_iv = submit("hello")
+    # print(submit_ciphertext)
+
+
+    user_attack = "4admin5true4"
+    cipher, key, iv = submit(user_attack)
+    print("cipher:",cipher)
+    mod_cipher = bit_flip(cipher)
+    print("modified cipher:", mod_cipher)
+    val = verify(mod_cipher, key, iv)
+    print(val)
 
 
 if __name__ == "__main__":

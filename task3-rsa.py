@@ -13,8 +13,8 @@ plt.figure(figsize=(10, 6))
 plt.scatter(key_sizes, sign_throughput, label='Sign', marker='o', color='blue')
 
 
-plt.xscale('log')  # Use a logarithmic scale for better visibility
-plt.yscale('log')
+# plt.xscale('log')  # Use a logarithmic scale for better visibility
+# plt.yscale('log')
 plt.xlabel('RSA key size (bits)')
 plt.ylabel('signing throughput (operations per second)')
 plt.title('Signing throughput vs RSA key size')
